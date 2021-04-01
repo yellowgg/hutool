@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -61,6 +62,12 @@ public class ImgUtil {
 	public static final String IMAGE_TYPE_BMP = "bmp";// 英文Bitmap（位图）的简写，它是Windows操作系统中的标准图像文件格式
 	public static final String IMAGE_TYPE_PNG = "png";// 可移植网络图形
 	public static final String IMAGE_TYPE_PSD = "psd";// Photoshop的专用格式Photoshop
+
+	/**
+	 * RGB颜色范围上限
+	 */
+	private static final int RGB_COLOR_BOUND = 256;
+
 
 	// ---------------------------------------------------------------------------------------------------------------------- scale
 
@@ -177,7 +184,7 @@ public class ImgUtil {
 	 * @param destImageFile 缩放后的图像地址
 	 * @param width         缩放后的宽度
 	 * @param height        缩放后的高度
-	 * @param fixedColor    补充的颜色，不补充为<code>null</code>
+	 * @param fixedColor    补充的颜色，不补充为{@code null}
 	 * @throws IORuntimeException IO异常
 	 */
 	public static void scale(File srcImageFile, File destImageFile, int width, int height, Color fixedColor) throws IORuntimeException {
@@ -195,7 +202,7 @@ public class ImgUtil {
 	 * @param destStream 缩放后的图像目标流
 	 * @param width      缩放后的宽度
 	 * @param height     缩放后的高度
-	 * @param fixedColor 比例不对时补充的颜色，不补充为<code>null</code>
+	 * @param fixedColor 比例不对时补充的颜色，不补充为{@code null}
 	 * @throws IORuntimeException IO异常
 	 */
 	public static void scale(InputStream srcStream, OutputStream destStream, int width, int height, Color fixedColor) throws IORuntimeException {
@@ -210,7 +217,7 @@ public class ImgUtil {
 	 * @param destStream 缩放后的图像目标流
 	 * @param width      缩放后的宽度
 	 * @param height     缩放后的高度
-	 * @param fixedColor 比例不对时补充的颜色，不补充为<code>null</code>
+	 * @param fixedColor 比例不对时补充的颜色，不补充为{@code null}
 	 * @throws IORuntimeException IO异常
 	 */
 	public static void scale(ImageInputStream srcStream, ImageOutputStream destStream, int width, int height, Color fixedColor) throws IORuntimeException {
@@ -225,7 +232,7 @@ public class ImgUtil {
 	 * @param destImageStream 缩放后的图像目标流
 	 * @param width           缩放后的宽度
 	 * @param height          缩放后的高度
-	 * @param fixedColor      比例不对时补充的颜色，不补充为<code>null</code>
+	 * @param fixedColor      比例不对时补充的颜色，不补充为{@code null}
 	 * @throws IORuntimeException IO异常
 	 */
 	public static void scale(Image srcImage, ImageOutputStream destImageStream, int width, int height, Color fixedColor) throws IORuntimeException {
@@ -239,7 +246,7 @@ public class ImgUtil {
 	 * @param srcImage   源图像
 	 * @param width      缩放后的宽度
 	 * @param height     缩放后的高度
-	 * @param fixedColor 比例不对时补充的颜色，不补充为<code>null</code>
+	 * @param fixedColor 比例不对时补充的颜色，不补充为{@code null}
 	 * @return {@link Image}
 	 */
 	public static Image scale(Image srcImage, int width, int height, Color fixedColor) {
@@ -392,35 +399,36 @@ public class ImgUtil {
 		int srcWidth = srcImage.getWidth(null); // 源图宽度
 		int srcHeight = srcImage.getHeight(null); // 源图高度
 
-		try {
-			if (srcWidth > destWidth && srcHeight > destHeight) {
-				int cols; // 切片横向数量
-				int rows; // 切片纵向数量
-				// 计算切片的横向和纵向数量
-				if (srcWidth % destWidth == 0) {
-					cols = srcWidth / destWidth;
-				} else {
-					cols = (int) Math.floor((double) srcWidth / destWidth) + 1;
-				}
-				if (srcHeight % destHeight == 0) {
-					rows = srcHeight / destHeight;
-				} else {
-					rows = (int) Math.floor((double) srcHeight / destHeight) + 1;
-				}
-				// 循环建立切片
-				Image tag;
-				for (int i = 0; i < rows; i++) {
-					for (int j = 0; j < cols; j++) {
-						// 四个参数分别为图像起点坐标和宽高
-						// 即: CropImageFilter(int x,int y,int width,int height)
-						tag = cut(srcImage, new Rectangle(j * destWidth, i * destHeight, destWidth, destHeight));
-						// 输出为文件
-						ImageIO.write(toRenderedImage(tag), IMAGE_TYPE_JPEG, new File(descDir, "_r" + i + "_c" + j + ".jpg"));
-					}
-				}
+		if (srcWidth < destWidth) {
+			destWidth = srcWidth;
+		}
+		if (srcHeight < destHeight) {
+			destHeight = srcHeight;
+		}
+
+		int cols; // 切片横向数量
+		int rows; // 切片纵向数量
+		// 计算切片的横向和纵向数量
+		if (srcWidth % destWidth == 0) {
+			cols = srcWidth / destWidth;
+		} else {
+			cols = (int) Math.floor((double) srcWidth / destWidth) + 1;
+		}
+		if (srcHeight % destHeight == 0) {
+			rows = srcHeight / destHeight;
+		} else {
+			rows = (int) Math.floor((double) srcHeight / destHeight) + 1;
+		}
+		// 循环建立切片
+		Image tag;
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				// 四个参数分别为图像起点坐标和宽高
+				// 即: CropImageFilter(int x,int y,int width,int height)
+				tag = cut(srcImage, new Rectangle(j * destWidth, i * destHeight, destWidth, destHeight));
+				// 输出为文件
+				write(tag, FileUtil.file(descDir, "_r" + i + "_c" + j + ".jpg"));
 			}
-		} catch (IOException e) {
-			throw new IORuntimeException(e);
 		}
 	}
 
@@ -463,9 +471,9 @@ public class ImgUtil {
 				cols = 2; // 切片列数
 			}
 			// 读取源图像
-			final Image bi = toBufferedImage(srcImage);
-			int srcWidth = bi.getWidth(null); // 源图宽度
-			int srcHeight = bi.getHeight(null); // 源图高度
+			final BufferedImage bi = toBufferedImage(srcImage);
+			int srcWidth = bi.getWidth(); // 源图宽度
+			int srcHeight = bi.getHeight(); // 源图高度
 
 			int destWidth = NumberUtil.partValue(srcWidth, cols); // 每张切片的宽度
 			int destHeight = NumberUtil.partValue(srcHeight, rows); // 每张切片的高度
@@ -1116,7 +1124,7 @@ public class ImgUtil {
 
 	/**
 	 * {@link Image} 转 {@link RenderedImage}<br>
-	 * 首先尝试强转，否则新建一个{@link BufferedImage}后重新绘制
+	 * 首先尝试强转，否则新建一个{@link BufferedImage}后重新绘制，使用 {@link BufferedImage#TYPE_INT_RGB} 模式。
 	 *
 	 * @param img {@link Image}
 	 * @return {@link BufferedImage}
@@ -1132,7 +1140,7 @@ public class ImgUtil {
 
 	/**
 	 * {@link Image} 转 {@link BufferedImage}<br>
-	 * 首先尝试强转，否则新建一个{@link BufferedImage}后重新绘制
+	 * 首先尝试强转，否则新建一个{@link BufferedImage}后重新绘制，使用 {@link BufferedImage#TYPE_INT_RGB} 模式
 	 *
 	 * @param img {@link Image}
 	 * @return {@link BufferedImage}
@@ -1147,27 +1155,39 @@ public class ImgUtil {
 
 	/**
 	 * {@link Image} 转 {@link BufferedImage}<br>
-	 * 如果源图片的RGB模式与目标模式一致，则直接转换，否则重新绘制
+	 * 如果源图片的RGB模式与目标模式一致，则直接转换，否则重新绘制<br>
+	 * 默认的，png图片使用 {@link BufferedImage#TYPE_INT_ARGB}模式，其它使用 {@link BufferedImage#TYPE_INT_RGB} 模式
 	 *
 	 * @param image     {@link Image}
-	 * @param imageType 目标图片类型
+	 * @param imageType 目标图片类型，例如jpg或png等
 	 * @return {@link BufferedImage}
 	 * @since 4.3.2
 	 */
 	public static BufferedImage toBufferedImage(Image image, String imageType) {
+		final int type = imageType.equalsIgnoreCase(IMAGE_TYPE_PNG)
+				 ? BufferedImage.TYPE_INT_ARGB
+				 : BufferedImage.TYPE_INT_RGB;
+		return toBufferedImage(image, type);
+	}
+
+	/**
+	 * {@link Image} 转 {@link BufferedImage}<br>
+	 * 如果源图片的RGB模式与目标模式一致，则直接转换，否则重新绘制
+	 *
+	 * @param image     {@link Image}
+	 * @param imageType 目标图片类型，{@link BufferedImage}中的常量，例如黑白等
+	 * @return {@link BufferedImage}
+	 * @since 5.4.7
+	 */
+	public static BufferedImage toBufferedImage(Image image, int imageType) {
 		BufferedImage bufferedImage;
-		if (false == imageType.equalsIgnoreCase(IMAGE_TYPE_PNG)) {
-			// 当目标为非PNG类图片时，源图片统一转换为RGB格式
-			if (image instanceof BufferedImage) {
-				bufferedImage = (BufferedImage) image;
-				if (BufferedImage.TYPE_INT_RGB != bufferedImage.getType()) {
-					bufferedImage = copyImage(image, BufferedImage.TYPE_INT_RGB);
-				}
-			} else {
-				bufferedImage = copyImage(image, BufferedImage.TYPE_INT_RGB);
+		if (image instanceof BufferedImage) {
+			bufferedImage = (BufferedImage) image;
+			if (imageType != bufferedImage.getType()) {
+				bufferedImage = copyImage(image, imageType);
 			}
 		} else {
-			bufferedImage = toBufferedImage(image);
+			bufferedImage = copyImage(image, imageType);
 		}
 		return bufferedImage;
 	}
@@ -1269,7 +1289,7 @@ public class ImgUtil {
 	 * @return Base64的字符串表现形式
 	 * @since 5.3.6
 	 */
-	public static String toBase64DateUri(Image image, String imageType) {
+	public static String toBase64DataUri(Image image, String imageType) {
 		return URLUtil.getDataUri(
 				"image/" + imageType, "base64",
 				toBase64(image, imageType));
@@ -1322,7 +1342,7 @@ public class ImgUtil {
 	 * @param font            字体{@link Font}
 	 * @param backgroundColor 背景颜色，默认透明
 	 * @param fontColor       字体颜色，默认黑色
-	 * @param imageType 图片类型，见：{@link BufferedImage}
+	 * @param imageType       图片类型，见：{@link BufferedImage}
 	 * @return 图片
 	 * @throws IORuntimeException IO异常
 	 */
@@ -1355,7 +1375,7 @@ public class ImgUtil {
 	/**
 	 * 获取font的样式应用在str上的整个矩形
 	 *
-	 * @param str 字符串，必须非空
+	 * @param str  字符串，必须非空
 	 * @param font 字体，必须非空
 	 * @return {@link Rectangle2D}
 	 * @since 5.3.3
@@ -1508,8 +1528,9 @@ public class ImgUtil {
 			imageType = IMAGE_TYPE_JPG;
 		}
 
-		final ImageWriter writer = getWriter(image, imageType);
-		return write(toBufferedImage(image, imageType), writer, destImageStream, quality);
+		final BufferedImage bufferedImage = toBufferedImage(image, imageType);
+		final ImageWriter writer = getWriter(bufferedImage, imageType);
+		return write(bufferedImage, writer, destImageStream, quality);
 	}
 
 	/**
@@ -1607,11 +1628,29 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static BufferedImage read(File imageFile) {
+		BufferedImage result;
 		try {
-			return ImageIO.read(imageFile);
+			result = ImageIO.read(imageFile);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type of file [" + imageFile.getName() + "] is not supported!");
+		}
+
+		return result;
+	}
+
+	/**
+	 * 从URL中获取或读取图片对象
+	 *
+	 * @param url URL
+	 * @return {@link Image}
+	 * @since 5.5.8
+	 */
+	public static Image getImage(URL url){
+		return Toolkit.getDefaultToolkit().getImage(url);
 	}
 
 	/**
@@ -1633,11 +1672,18 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static BufferedImage read(InputStream imageStream) {
+		BufferedImage result;
 		try {
-			return ImageIO.read(imageStream);
+			result = ImageIO.read(imageStream);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1648,11 +1694,18 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static BufferedImage read(ImageInputStream imageStream) {
+		BufferedImage result;
 		try {
-			return ImageIO.read(imageStream);
+			result = ImageIO.read(imageStream);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1663,11 +1716,18 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static BufferedImage read(URL imageUrl) {
+		BufferedImage result;
 		try {
-			return ImageIO.read(imageUrl);
+			result = ImageIO.read(imageUrl);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type of [" + imageUrl.toString() + "] is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1679,11 +1739,18 @@ public class ImgUtil {
 	 * @since 3.1.2
 	 */
 	public static ImageOutputStream getImageOutputStream(OutputStream out) throws IORuntimeException {
+		ImageOutputStream result;
 		try {
-			return ImageIO.createImageOutputStream(out);
+			result = ImageIO.createImageOutputStream(out);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1695,11 +1762,18 @@ public class ImgUtil {
 	 * @since 3.2.2
 	 */
 	public static ImageOutputStream getImageOutputStream(File outFile) throws IORuntimeException {
+		ImageOutputStream result;
 		try {
-			return ImageIO.createImageOutputStream(outFile);
+			result = ImageIO.createImageOutputStream(outFile);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type of file [" + outFile.getName() + "] is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1711,11 +1785,18 @@ public class ImgUtil {
 	 * @since 3.1.2
 	 */
 	public static ImageInputStream getImageInputStream(InputStream in) throws IORuntimeException {
+		ImageOutputStream result;
 		try {
-			return ImageIO.createImageInputStream(in);
+			result = ImageIO.createImageOutputStream(in);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
+
+		if (null == result) {
+			throw new IllegalArgumentException("Image type is not supported!");
+		}
+
+		return result;
 	}
 
 	/**
@@ -1727,7 +1808,7 @@ public class ImgUtil {
 	 * @since 4.3.2
 	 */
 	public static ImageWriter getWriter(Image img, String formatName) {
-		final ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(toRenderedImage(img));
+		final ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(toBufferedImage(img, formatName));
 		final Iterator<ImageWriter> iter = ImageIO.getImageWriters(type, formatName);
 		return iter.hasNext() ? iter.next() : null;
 	}
@@ -1778,7 +1859,7 @@ public class ImgUtil {
 	 */
 	public static String toHex(int r, int g, int b) {
 		// rgb 小于 255
-		if(r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255){
+		if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
 			throw new IllegalArgumentException("RGB must be 0~255!");
 		}
 		return String.format("#%02X%02X%02X", r, g, b);
@@ -1902,15 +1983,15 @@ public class ImgUtil {
 		if (null == random) {
 			random = RandomUtil.getRandom();
 		}
-		return new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255));
+		return new Color(random.nextInt(RGB_COLOR_BOUND), random.nextInt(RGB_COLOR_BOUND), random.nextInt(RGB_COLOR_BOUND));
 	}
 
 	/**
 	 * 获得修正后的矩形坐标位置，变为以背景中心为基准坐标（即x,y == 0,0时，处于背景正中）
 	 *
-	 * @param rectangle  矩形
+	 * @param rectangle        矩形
 	 * @param backgroundWidth  参考宽（背景宽）
-	 * @param backgroundHeight  参考高（背景高）
+	 * @param backgroundHeight 参考高（背景高）
 	 * @return 修正后的{@link Point}
 	 * @since 5.3.6
 	 */

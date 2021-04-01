@@ -2,6 +2,7 @@ package cn.hutool.core.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.map.MapBuilder;
 import cn.hutool.core.map.MapUtil;
 import lombok.Data;
@@ -9,10 +10,15 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.xpath.XPathConstants;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link XmlUtil} 工具类
@@ -149,6 +155,18 @@ public class XmlUtilTest {
 	}
 
 	@Test
+	public void readBySaxTest(){
+		final Set<String> eles = CollUtil.newHashSet(
+				"returnsms", "returnstatus", "message", "remainpoint", "taskID", "successCounts");
+		XmlUtil.readBySax(ResourceUtil.getStream("test.xml"), new DefaultHandler(){
+			@Override
+			public void startElement(String uri, String localName, String qName, Attributes attributes) {
+				Assert.assertTrue(eles.contains(localName));
+			}
+		});
+	}
+
+	@Test
 	public void mapToXmlTestWithOmitXmlDeclaration() {
 
 		Map<String, Object> map = MapBuilder.create(new LinkedHashMap<String, Object>())
@@ -159,7 +177,7 @@ public class XmlUtilTest {
 	}
 
 	@Test
-	public void getByPathTest(){
+	public void getByPathTest() {
 		String xmlStr = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 				"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
 				"  <soap:Body>\n" +
@@ -172,12 +190,12 @@ public class XmlUtilTest {
 		Document document = XmlUtil.readXML(xmlStr);
 		Object value = XmlUtil.getByXPath(
 				"//soap:Envelope/soap:Body/ns2:testResponse/return",
-				document,XPathConstants.STRING);//
+				document, XPathConstants.STRING);//
 		Assert.assertEquals("2020/04/15 21:01:21", value);
 	}
 
 	@Test
-	public void xmlToBeanTest(){
+	public void xmlToBeanTest() {
 		final TestBean testBean = new TestBean();
 		testBean.setReqCode("1111");
 		testBean.setAccountName("账户名称");
@@ -196,12 +214,53 @@ public class XmlUtilTest {
 		Assert.assertEquals(testBean.getBankCode(), testBean2.getBankCode());
 	}
 
+	@Test
+	public void cleanCommentTest() {
+		final String xmlContent = "<info><title>hutool</title><!-- 这是注释 --><lang>java</lang></info>";
+		final String ret = XmlUtil.cleanComment(xmlContent);
+		Assert.assertEquals("<info><title>hutool</title><lang>java</lang></info>", ret);
+	}
+
 	@Data
-	public static class TestBean{
+	public static class TestBean {
 		private String ReqCode;
 		private String AccountName;
 		private String Operator;
 		private String ProjectCode;
 		private String BankCode;
+	}
+
+
+	@Test
+	@Ignore
+	public void formatTest(){
+		// https://github.com/looly/hutool/pull/1234
+		Document xml = XmlUtil.createXml("NODES");
+		xml.setXmlStandalone(true);
+
+		NodeList parentNode = xml.getElementsByTagName("NODES");
+
+		Element parent1Node = xml.createElement("NODE");
+
+		Element node1 = xml.createElement("NODENAME");
+		node1.setTextContent("走位");
+		Element node2 = xml.createElement("STEP");
+		node2.setTextContent("1");
+		Element node3 = xml.createElement("STATE");
+		node3.setTextContent("2");
+		Element node4 = xml.createElement("TIMELIMIT");
+		node4.setTextContent("");
+		Element node5 = xml.createElement("STARTTIME");
+
+		parent1Node.appendChild(node1);
+		parent1Node.appendChild(node2);
+		parent1Node.appendChild(node3);
+		parent1Node.appendChild(node4);
+		parent1Node.appendChild(node5);
+
+		parentNode.item(0).appendChild(parent1Node);
+
+		String format = XmlUtil.toStr(xml,"GBK",true);
+		Console.log(format);
 	}
 }

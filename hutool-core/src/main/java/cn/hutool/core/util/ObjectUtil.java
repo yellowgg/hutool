@@ -13,7 +13,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * 对象工具类，包括判空、克隆、序列化等操作
@@ -23,13 +29,32 @@ import java.util.*;
 public class ObjectUtil {
 
 	/**
+	 * 比较两个对象是否相等，此方法是 {@link #equal(Object, Object)}的别名方法。<br>
+	 * 相同的条件有两个，满足其一即可：<br>
+	 * <ol>
+	 * <li>obj1 == null &amp;&amp; obj2 == null</li>
+	 * <li>obj1.equals(obj2)</li>
+	 * <li>如果是BigDecimal比较，0 == obj1.compareTo(obj2)</li>
+	 * </ol>
+	 *
+	 * @param obj1 对象1
+	 * @param obj2 对象2
+	 * @return 是否相等
+	 * @see #equal(Object, Object)
+	 * @since 5.4.3
+	 */
+	public static boolean equals(Object obj1, Object obj2) {
+		return equal(obj1, obj2);
+	}
+
+	/**
 	 * 比较两个对象是否相等。<br>
 	 * 相同的条件有两个，满足其一即可：<br>
 	 * <ol>
 	 * <li>obj1 == null &amp;&amp; obj2 == null</li>
 	 * <li>obj1.equals(obj2)</li>
+	 * <li>如果是BigDecimal比较，0 == obj1.compareTo(obj2)</li>
 	 * </ol>
-	 * 1. obj1 == null &amp;&amp; obj2 == null 2. obj1.equals(obj2)
 	 *
 	 * @param obj1 对象1
 	 * @param obj2 对象2
@@ -37,7 +62,9 @@ public class ObjectUtil {
 	 * @see Objects#equals(Object, Object)
 	 */
 	public static boolean equal(Object obj1, Object obj2) {
-		// return (obj1 != null) ? (obj1.equals(obj2)) : (obj2 == null);
+		if (obj1 instanceof BigDecimal && obj2 instanceof BigDecimal) {
+			return NumberUtil.equals((BigDecimal) obj1, (BigDecimal) obj2);
+		}
 		return Objects.equals(obj1, obj2);
 	}
 
@@ -275,6 +302,41 @@ public class ObjectUtil {
 		return (null != object) ? object : defaultValue;
 	}
 
+
+	/**
+	 * 如果给定对象为{@code null} 返回默认值, 如果不为null 返回自定义handle处理后的返回值
+	 *
+	 * @param source       Object 类型对象
+	 * @param handle       自定义的处理方法
+	 * @param defaultValue 默认为空的返回值
+	 * @param <T>          被检查对象为{@code null}返回默认值，否则返回自定义handle处理后的返回值
+	 * @return 处理后的返回值
+	 * @since 5.4.6
+	 */
+	public static <T> T defaultIfNull(Object source, Supplier<? extends T> handle, final T defaultValue) {
+		if (Objects.nonNull(source)) {
+			return handle.get();
+		}
+		return defaultValue;
+	}
+
+	/**
+	 * 如果给定对象为{@code null}或者""返回默认值, 否则返回自定义handle处理后的返回值
+	 *
+	 * @param str          String 类型
+	 * @param handle       自定义的处理方法
+	 * @param defaultValue 默认为空的返回值
+	 * @param <T>          被检查对象为{@code null}或者 ""返回默认值，否则返回自定义handle处理后的返回值
+	 * @return 处理后的返回值
+	 * @since 5.4.6
+	 */
+	public static <T> T defaultIfEmpty(String str, Supplier<? extends T> handle, final T defaultValue) {
+		if (StrUtil.isNotEmpty(str)) {
+			return handle.get();
+		}
+		return defaultValue;
+	}
+
 	/**
 	 * 如果给定对象为{@code null}或者 "" 返回默认值
 	 *
@@ -321,7 +383,7 @@ public class ObjectUtil {
 	 * 克隆对象<br>
 	 * 如果对象实现Cloneable接口，调用其clone方法<br>
 	 * 如果实现Serializable接口，执行深度克隆<br>
-	 * 否则返回<code>null</code>
+	 * 否则返回{@code null}
 	 *
 	 * @param <T> 对象类型
 	 * @param obj 被克隆对象
@@ -545,10 +607,23 @@ public class ObjectUtil {
 	}
 
 	/**
+	 * 是否存在{@code null}对象，通过{@link ObjectUtil#isNull(Object)} 判断元素
+	 *
+	 * @param objs 被检查对象
+	 * @return 是否存在
+	 * @since 5.5.3
+	 * @see ArrayUtil#hasNull(Object[]) 
+	 */
+	public static boolean hasNull(Object... objs) {
+		return ArrayUtil.hasNull(objs);
+	}
+
+	/**
 	 * 是否存在{@code null}或空对象，通过{@link ObjectUtil#isEmpty(Object)} 判断元素
 	 *
 	 * @param objs 被检查对象
 	 * @return 是否存在
+	 * @see ArrayUtil#hasEmpty(Object...)
 	 */
 	public static boolean hasEmpty(Object... objs) {
 		return ArrayUtil.hasEmpty(objs);

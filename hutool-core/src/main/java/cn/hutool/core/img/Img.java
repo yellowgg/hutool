@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -20,6 +21,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
@@ -66,7 +68,7 @@ public class Img implements Serializable {
 	 * 从Path读取图片并开始处理
 	 *
 	 * @param imagePath 图片文件路径
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(Path imagePath) {
 		return from(imagePath.toFile());
@@ -76,7 +78,7 @@ public class Img implements Serializable {
 	 * 从文件读取图片并开始处理
 	 *
 	 * @param imageFile 图片文件
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(File imageFile) {
 		return new Img(ImgUtil.read(imageFile));
@@ -86,7 +88,7 @@ public class Img implements Serializable {
 	 * 从资源对象中读取图片并开始处理
 	 *
 	 * @param resource 图片资源对象
-	 * @return {@link Img}
+	 * @return Img
 	 * @since 4.4.1
 	 */
 	public static Img from(Resource resource) {
@@ -97,7 +99,7 @@ public class Img implements Serializable {
 	 * 从流读取图片并开始处理
 	 *
 	 * @param in 图片流
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(InputStream in) {
 		return new Img(ImgUtil.read(in));
@@ -107,7 +109,7 @@ public class Img implements Serializable {
 	 * 从ImageInputStream取图片并开始处理
 	 *
 	 * @param imageStream 图片流
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(ImageInputStream imageStream) {
 		return new Img(ImgUtil.read(imageStream));
@@ -117,7 +119,7 @@ public class Img implements Serializable {
 	 * 从URL取图片并开始处理
 	 *
 	 * @param imageUrl 图片URL
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(URL imageUrl) {
 		return new Img(ImgUtil.read(imageUrl));
@@ -127,14 +129,14 @@ public class Img implements Serializable {
 	 * 从Image取图片并开始处理
 	 *
 	 * @param image 图片
-	 * @return {@link Img}
+	 * @return Img
 	 */
 	public static Img from(Image image) {
 		return new Img(ImgUtil.toBufferedImage(image));
 	}
 
 	/**
-	 * 构造
+	 * 构造，目标图片类型取决于来源图片类型
 	 *
 	 * @param srcImage 来源图片
 	 */
@@ -146,13 +148,21 @@ public class Img implements Serializable {
 	 * 构造
 	 *
 	 * @param srcImage        来源图片
-	 * @param targetImageType 目标图片类型
+	 * @param targetImageType 目标图片类型，null则读取来源图片类型
 	 * @since 5.0.7
 	 */
 	public Img(BufferedImage srcImage, String targetImageType) {
 		this.srcImage = srcImage;
 		if (null == targetImageType) {
-			targetImageType = ImgUtil.IMAGE_TYPE_JPG;
+			if (srcImage.getType() == BufferedImage.TYPE_INT_ARGB
+					|| srcImage.getType() == BufferedImage.TYPE_INT_ARGB_PRE
+					|| srcImage.getType() == BufferedImage.TYPE_4BYTE_ABGR
+					|| srcImage.getType() == BufferedImage.TYPE_4BYTE_ABGR_PRE
+			) {
+				targetImageType = ImgUtil.IMAGE_TYPE_PNG;
+			} else {
+				targetImageType = ImgUtil.IMAGE_TYPE_JPG;
+			}
 		}
 		this.targetImageType = targetImageType;
 	}
@@ -292,7 +302,8 @@ public class Img implements Serializable {
 		double heightRatio = NumberUtil.div(height, srcHeight);
 		double widthRatio = NumberUtil.div(width, srcWidth);
 
-		if (widthRatio == heightRatio) {
+		// 浮点数之间的等值判断,基本数据类型不能用==比较,包装数据类型不能用equals来判断。
+		if (NumberUtil.equals(heightRatio, widthRatio)) {
 			// 长宽都按照相同比例缩放时，返回缩放后的图片
 			scale(width, height);
 		} else if (widthRatio < heightRatio) {
@@ -499,7 +510,7 @@ public class Img implements Serializable {
 	public Img pressImage(Image pressImg, Rectangle rectangle, float alpha) {
 		final Image targetImg = getValidSrcImg();
 
-		this.targetImage = draw(ImgUtil.toBufferedImage(targetImg), pressImg, rectangle, alpha);
+		this.targetImage = draw(ImgUtil.toBufferedImage(targetImg, this.targetImageType), pressImg, rectangle, alpha);
 		return this;
 	}
 
@@ -542,7 +553,47 @@ public class Img implements Serializable {
 		Graphics2D graphics2d = targetImg.createGraphics();
 		graphics2d.drawImage(image, 0, 0, width, height, width, 0, 0, height, null);
 		graphics2d.dispose();
+
 		this.targetImage = targetImg;
+		return this;
+	}
+
+	/**
+	 * 描边，此方法为向内描边，会覆盖图片相应的位置
+	 *
+	 * @param color 描边颜色，默认黑色
+	 * @param width 边框粗细
+	 * @return this
+	 * @since 5.4.1
+	 */
+	public Img stroke(Color color, float width){
+		return stroke(color, new BasicStroke(width));
+	}
+
+	/**
+	 * 描边，此方法为向内描边，会覆盖图片相应的位置
+	 *
+	 * @param color 描边颜色，默认黑色
+	 * @param stroke 描边属性，包括粗细、线条类型等，见{@link BasicStroke}
+	 * @return this
+	 * @since 5.4.1
+	 */
+	public Img stroke(Color color, Stroke stroke){
+		final BufferedImage image = ImgUtil.toBufferedImage(getValidSrcImg());
+		int width = image.getWidth(null);
+		int height = image.getHeight(null);
+		Graphics2D g = image.createGraphics();
+
+		g.setColor(ObjectUtil.defaultIfNull(color, Color.BLACK));
+		if(null != stroke){
+			g.setStroke(stroke);
+		}
+
+		g.drawRect(0, 0, width -1 , height - 1);
+
+		g.dispose();
+		this.targetImage = image;
+
 		return this;
 	}
 

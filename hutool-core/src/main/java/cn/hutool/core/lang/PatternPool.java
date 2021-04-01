@@ -5,7 +5,7 @@ import cn.hutool.core.util.ReUtil;
 import java.util.regex.Pattern;
 
 /**
- * 常用正则表达式集合
+ * 常用正则表达式集合，更多正则见:https://any86.github.io/any-rule/
  *
  * @author Looly
  */
@@ -55,15 +55,20 @@ public class PatternPool {
 	/**
 	 * 移动电话
 	 */
-	public final static Pattern MOBILE = Pattern.compile("(?:0|86|\\+86)?1[3456789]\\d{9}");
+	public final static Pattern MOBILE = Pattern.compile("(?:0|86|\\+86)?1[3-9]\\d{9}");
+	/**
+	 * 座机号码
+	 */
+	public final static Pattern TEL = Pattern.compile("0\\d{2,3}-[1-9]\\d{6,7}");
 	/**
 	 * 18位身份证号码
 	 */
 	public final static Pattern CITIZEN_ID = Pattern.compile("[1-9]\\d{5}[1-2]\\d{3}((0\\d)|(1[0-2]))(([012]\\d)|3[0-1])\\d{3}(\\d|X|x)");
+
 	/**
-	 * 邮编
+	 * 邮编，兼容港澳台
 	 */
-	public final static Pattern ZIP_CODE = Pattern.compile("[1-9]\\d{5}(?!\\d)");
+	public final static Pattern ZIP_CODE = Pattern.compile("^(0[1-7]|1[0-356]|2[0-7]|3[0-6]|4[0-7]|5[0-7]|6[0-7]|7[0-5]|8[0-9]|9[0-8])\\d{4}|99907[78]$");
 	/**
 	 * 生日
 	 */
@@ -83,11 +88,11 @@ public class PatternPool {
 	/**
 	 * UUID
 	 */
-	public final static Pattern UUID = Pattern.compile("^[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}$");
+	public final static Pattern UUID = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", Pattern.CASE_INSENSITIVE);
 	/**
 	 * 不带横线的UUID
 	 */
-	public final static Pattern UUID_SIMPLE = Pattern.compile("^[0-9a-z]{32}$");
+	public final static Pattern UUID_SIMPLE = Pattern.compile("^[0-9a-f]{32}$", Pattern.CASE_INSENSITIVE);
 	/**
 	 * MAC地址正则
 	 */
@@ -122,6 +127,22 @@ public class PatternPool {
 	 * </pre>
 	 */
 	public static final Pattern CREDIT_CODE = Pattern.compile("^[0-9A-HJ-NPQRTUWXY]{2}\\d{6}[0-9A-HJ-NPQRTUWXY]{10}$");
+	/**
+	 * 车架号
+	 * 别名：车辆识别代号 车辆识别码
+	 * eg:LDC613P23A1305189
+	 * eg:LSJA24U62JG269225
+	 * 十七位码、车架号
+	 * 车辆的唯一标示
+	 */
+	public static final Pattern CAR_VIN = Pattern.compile("^[A-Za-z0-9]{17}$");
+	/**
+	 * 驾驶证  别名：驾驶证档案编号、行驶证编号
+	 * eg:430101758218
+	 * 12位数字字符串
+	 * 仅限：中国驾驶证档案编号
+	 */
+	public static final Pattern CAR_DRIVING_LICENCE = Pattern.compile("^[0-9]{12}$");
 
 	// -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	/**

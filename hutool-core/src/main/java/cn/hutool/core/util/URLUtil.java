@@ -14,14 +14,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.JarURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -132,6 +125,18 @@ public class URLUtil {
 				throw new UtilException(e);
 			}
 		}
+	}
+
+	/**
+	 * 获取string协议的URL，类似于string:///xxxxx
+	 *
+	 * @param content 正文
+	 * @return URL
+	 * @since 5.5.2
+	 */
+	public static URI getStringURI(CharSequence content){
+		final String contentStr = StrUtil.addPrefixIfNot(content, "string:///");
+		return URI.create(contentStr);
 	}
 
 	/**
@@ -327,7 +332,7 @@ public class URLUtil {
 	 * @throws UtilException UnsupportedEncodingException
 	 */
 	public static String encodeAll(String url, Charset charset) throws UtilException {
-		if (null == charset) {
+		if (null == charset || StrUtil.isEmpty(url)) {
 			return url;
 		}
 
@@ -483,13 +488,7 @@ public class URLUtil {
 	 * @throws UtilException 包装URISyntaxException
 	 */
 	public static String getPath(String uriStr) {
-		URI uri;
-		try {
-			uri = new URI(uriStr);
-		} catch (URISyntaxException e) {
-			throw new UtilException(e);
-		}
-		return uri.getPath();
+		return toURI(uriStr).getPath();
 	}
 
 	/**
@@ -509,7 +508,7 @@ public class URLUtil {
 		String path = null;
 		try {
 			// URL对象的getPath方法对于包含中文或空格的问题
-			path = URLUtil.toURI(url).getPath();
+			path = toURI(url).getPath();
 		} catch (UtilException e) {
 			// ignore
 		}
@@ -569,7 +568,7 @@ public class URLUtil {
 			location = encode(location);
 		}
 		try {
-			return new URI(location);
+			return new URI(StrUtil.trim(location));
 		} catch (URISyntaxException e) {
 			throw new UtilException(e);
 		}
@@ -663,9 +662,11 @@ public class URLUtil {
 	/**
 	 * 标准化URL字符串，包括：
 	 *
-	 * <pre>
-	 * 1. 多个/替换为一个
-	 * </pre>
+	 * <ol>
+	 *     <li>自动补齐“http://”头</li>
+	 *     <li>去除开头的\或者/</li>
+	 *     <li>替换\为/</li>
+	 * </ol>
 	 *
 	 * @param url URL字符串
 	 * @return 标准化后的URL字符串
@@ -677,9 +678,11 @@ public class URLUtil {
 	/**
 	 * 标准化URL字符串，包括：
 	 *
-	 * <pre>
-	 * 1. 多个/替换为一个
-	 * </pre>
+	 * <ol>
+	 *     <li>自动补齐“http://”头</li>
+	 *     <li>去除开头的\或者/</li>
+	 *     <li>替换\为/</li>
+	 * </ol>
 	 *
 	 * @param url          URL字符串
 	 * @param isEncodePath 是否对URL中path部分的中文和特殊字符做转义（不包括 http:, /和域名部分）
@@ -687,6 +690,26 @@ public class URLUtil {
 	 * @since 4.4.1
 	 */
 	public static String normalize(String url, boolean isEncodePath) {
+		return normalize(url, isEncodePath, false);
+	}
+
+	/**
+	 * 标准化URL字符串，包括：
+	 *
+	 * <ol>
+	 *     <li>自动补齐“http://”头</li>
+	 *     <li>去除开头的\或者/</li>
+	 *     <li>替换\为/</li>
+	 *     <li>如果replaceSlash为true，则替换多个/为一个</li>
+	 * </ol>
+	 *
+	 * @param url          URL字符串
+	 * @param isEncodePath 是否对URL中path部分的中文和特殊字符做转义（不包括 http:, /和域名部分）
+	 * @param replaceSlash  是否替换url body中的 //
+	 * @return 标准化后的URL字符串
+	 * @since 5.5.5
+	 */
+	public static String normalize(String url, boolean isEncodePath, boolean replaceSlash) {
 		if (StrUtil.isBlank(url)) {
 			return url;
 		}
@@ -712,8 +735,12 @@ public class URLUtil {
 			// 去除开头的\或者/
 			//noinspection ConstantConditions
 			body = body.replaceAll("^[\\\\/]+", StrUtil.EMPTY);
-			// 替换多个\或/为单个/
-			body = body.replace("\\", "/").replaceAll("//+", "/");
+			// 替换\为/
+			body = body.replace("\\", "/");
+			if (replaceSlash) {
+				//issue#I25MZL@Gitee，双斜杠在URL中是允许存在的，默认不做替换
+				body = body.replaceAll("//+", "/");
+			}
 		}
 
 		final int pathSepIndex = StrUtil.indexOf(body, '/');
@@ -770,6 +797,25 @@ public class URLUtil {
 				((HttpURLConnection) conn).disconnect();
 			}
 		}
+	}
+
+	/**
+	 * Data URI Scheme封装，数据格式为Base64。data URI scheme 允许我们使用内联（inline-code）的方式在网页中包含数据，<br>
+	 * 目的是将一些小的数据，直接嵌入到网页中，从而不用再从外部文件载入。常用于将图片嵌入网页。
+	 *
+	 * <p>
+	 * Data URI的格式规范：
+	 * <pre>
+	 *     data:[&lt;mime type&gt;][;charset=&lt;charset&gt;][;&lt;encoding&gt;],&lt;encoded data&gt;
+	 * </pre>
+	 *
+	 * @param mimeType 可选项（null表示无），数据类型（image/png、text/plain等）
+	 * @param data     编码后的数据
+	 * @return Data URI字符串
+	 * @since 5.3.11
+	 */
+	public static String getDataUriBase64(String mimeType, String data) {
+		return getDataUri(mimeType, null, "base64", data);
 	}
 
 	/**

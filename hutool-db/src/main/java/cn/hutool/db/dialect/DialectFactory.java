@@ -18,12 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 方言工厂类
- * 
+ *
  * @author loolly
  *
  */
 public class DialectFactory {
-	
+
 	/** JDBC 驱动 MySQL */
 	public static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
 	/** JDBC 驱动 MySQL，在6.X版本中变动驱动类名，且使用SPI机制 */
@@ -50,16 +50,22 @@ public class DialectFactory {
 	public static final String DRIVER_HSQLDB = "org.hsqldb.jdbc.JDBCDriver";
 	/** JDBC 驱动 达梦7 */
 	public static final String DRIVER_DM7 = "dm.jdbc.driver.DmDriver";
-	
+	/** JDBC 驱动 人大金仓 */
+	public static final String DRIVER_KINGBASE8 = "com.kingbase8.Driver";
+	/** JDBC 驱动 Ignite thin */
+	public static final String DRIVER_IGNITE_THIN = "org.apache.ignite.IgniteJdbcThinDriver";
+	/** JDBC 驱动 ClickHouse */
+	public static final String DRIVER_CLICK_HOUSE = "ru.yandex.clickhouse.ClickHouseDriver";
+
 	private static final Map<DataSource, Dialect> DIALECT_POOL = new ConcurrentHashMap<>();
 
 	private DialectFactory() {
 	}
-	
+
 	/**
 	 * 根据驱动名创建方言<br>
 	 * 驱动名是不分区大小写完全匹配的
-	 * 
+	 *
 	 * @param driverName JDBC驱动类名
 	 * @return 方言
 	 */
@@ -72,7 +78,7 @@ public class DialectFactory {
 	/**
 	 * 根据驱动名创建方言<br>
 	 * 驱动名是不分区大小写完全匹配的
-	 * 
+	 *
 	 * @param driverName JDBC驱动类名
 	 * @return 方言
 	 */
@@ -98,7 +104,7 @@ public class DialectFactory {
 
 	/**
 	 * 通过JDBC URL等信息识别JDBC驱动名
-	 * 
+	 *
 	 * @param nameContainsProductInfo 包含数据库标识的字符串
 	 * @return 驱动
 	 */
@@ -133,11 +139,20 @@ public class DialectFactory {
 		} else if (nameContainsProductInfo.contains("dm")) {
 			// 达梦7
 			driver = DRIVER_DM7;
+		} else if (nameContainsProductInfo.contains("kingbase8")) {
+			// 人大金仓8
+			driver = DRIVER_KINGBASE8;
+		} else if (nameContainsProductInfo.contains("ignite")) {
+			// Ignite thin
+			driver = DRIVER_IGNITE_THIN;
+		} else if (nameContainsProductInfo.contains("clickhouse")) {
+			// ClickHouse
+			driver = DRIVER_CLICK_HOUSE;
 		}
 
 		return driver;
 	}
-	
+
 	/**
 	 * 获取共享方言
 	 * @param ds 数据源，每一个数据源对应一个唯一方言
@@ -161,7 +176,7 @@ public class DialectFactory {
 
 	/**
 	 * 创建方言
-	 * 
+	 *
 	 * @param ds 数据源
 	 * @return 方言
 	 */
@@ -171,7 +186,7 @@ public class DialectFactory {
 
 	/**
 	 * 创建方言
-	 * 
+	 *
 	 * @param conn 数据库连接对象
 	 * @return 方言
 	 */

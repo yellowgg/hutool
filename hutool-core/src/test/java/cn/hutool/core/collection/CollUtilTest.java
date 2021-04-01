@@ -1,6 +1,7 @@
 package cn.hutool.core.collection;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.lang.Filter;
@@ -11,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +33,40 @@ import java.util.SortedSet;
  * @author looly
  */
 public class CollUtilTest {
+
+	@Test
+	public void testPredicateContains() {
+		ArrayList<String> list = CollUtil.newArrayList("bbbbb", "aaaaa", "ccccc");
+		Assert.assertTrue(CollUtil.contains(list, s -> s.startsWith("a")));
+		Assert.assertFalse(CollUtil.contains(list, s -> s.startsWith("d")));
+	}
+
+	@Test
+	public void testPadLeft() {
+		List<String> srcList = CollUtil.newArrayList();
+		List<String> answerList = CollUtil.newArrayList("a", "b");
+		CollUtil.padLeft(srcList, 1, "b");
+		CollUtil.padLeft(srcList, 2, "a");
+		Assert.assertEquals(srcList, answerList);
+
+		srcList = CollUtil.newArrayList("a", "b");
+		answerList = CollUtil.newArrayList("a", "b");
+		CollUtil.padLeft(srcList, 2, "a");
+		Assert.assertEquals(srcList, answerList);
+
+		srcList = CollUtil.newArrayList("c");
+		answerList = CollUtil.newArrayList("a", "a", "c");
+		CollUtil.padLeft(srcList, 3, "a");
+		Assert.assertEquals(srcList, answerList);
+	}
+
+	@Test
+	public void testPadRight() {
+		List<String> srcList = CollUtil.newArrayList("a");
+		List<String> answerList = CollUtil.newArrayList("a", "b", "b", "b", "b");
+		CollUtil.padRight(srcList, 5, "b");
+		Assert.assertEquals(srcList, answerList);
+	}
 
 	@Test
 	public void isNotEmptyTest() {
@@ -649,5 +685,25 @@ public class CollUtilTest {
 		Assert.assertEquals(Integer.valueOf(2), countMap.get("b"));
 		Assert.assertEquals(Integer.valueOf(2), countMap.get("c"));
 		Assert.assertEquals(Integer.valueOf(1), countMap.get("d"));
+	}
+
+	@Test
+	public void pageTest(){
+		List<Dict> objects = CollUtil.newArrayList();
+		for (int i = 0; i < 10; i++) {
+			objects.add(Dict.create().set("name", "姓名：" + i));
+		}
+
+		Assert.assertEquals(0, CollUtil.page(3, 5, objects).size());
+	}
+
+	@Test
+	public void subtractToListTest(){
+		List<Long> list1 = Arrays.asList(1L, 2L, 3L);
+		List<Long> list2 = Arrays.asList(2L, 3L);
+
+		List<Long> result = CollUtil.subtractToList(list1, list2);
+		Assert.assertEquals(1, result.size());
+		Assert.assertEquals(1L, result.get(0), 1);
 	}
 }

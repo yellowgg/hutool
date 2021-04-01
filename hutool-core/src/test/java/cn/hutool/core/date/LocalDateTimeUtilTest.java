@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -53,12 +54,52 @@ public class LocalDateTimeUtilTest {
 	}
 
 	@Test
+	public void parseTest5() {
+		LocalDateTime localDateTime = LocalDateTimeUtil.parse("19940121183604", "yyyyMMddHHmmss");
+		Assert.assertEquals("1994-01-21T18:36:04", localDateTime.toString());
+	}
+
+	@Test
+	public void parseTest6() {
+		LocalDateTime localDateTime = LocalDateTimeUtil.parse("19940121183604682", "yyyyMMddHHmmssSSS");
+		Assert.assertEquals("1994-01-21T18:36:04.682", localDateTime.toString());
+
+		localDateTime = LocalDateTimeUtil.parse("1994012118360468", "yyyyMMddHHmmssSS");
+		Assert.assertEquals("1994-01-21T18:36:04.680", localDateTime.toString());
+
+		localDateTime = LocalDateTimeUtil.parse("199401211836046", "yyyyMMddHHmmssS");
+		Assert.assertEquals("1994-01-21T18:36:04.600", localDateTime.toString());
+	}
+
+	@Test
+	public void parseDateTest() {
+		LocalDate localDate = LocalDateTimeUtil.parseDate("2020-01-23");
+		Assert.assertEquals("2020-01-23", localDate.toString());
+
+		localDate = LocalDateTimeUtil.parseDate("2020-01-23T12:23:56", DateTimeFormatter.ISO_DATE_TIME);
+		Assert.assertEquals("2020-01-23", localDate.toString());
+	}
+
+	@Test
 	public void formatTest() {
 		final LocalDateTime localDateTime = LocalDateTimeUtil.parse("2020-01-23T12:23:56");
 		String format = LocalDateTimeUtil.format(localDateTime, DatePattern.NORM_DATETIME_PATTERN);
 		Assert.assertEquals("2020-01-23 12:23:56", format);
 
+		format = LocalDateTimeUtil.formatNormal(localDateTime);
+		Assert.assertEquals("2020-01-23 12:23:56", format);
+
 		format = LocalDateTimeUtil.format(localDateTime, DatePattern.NORM_DATE_PATTERN);
+		Assert.assertEquals("2020-01-23", format);
+	}
+
+	@Test
+	public void formatLocalDateTest() {
+		final LocalDate date = LocalDate.parse("2020-01-23");
+		String format = LocalDateTimeUtil.format(date, DatePattern.NORM_DATE_PATTERN);
+		Assert.assertEquals("2020-01-23", format);
+
+		format = LocalDateTimeUtil.formatNormal(date);
 		Assert.assertEquals("2020-01-23", format);
 	}
 

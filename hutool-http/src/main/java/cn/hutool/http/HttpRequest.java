@@ -1,6 +1,5 @@
 package cn.hutool.http;
 
-import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.io.IORuntimeException;
@@ -28,8 +27,10 @@ import java.io.OutputStream;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URLStreamHandler;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -411,6 +412,18 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	public HttpRequest contentLength(int value) {
 		header(Header.CONTENT_LENGTH, String.valueOf(value));
 		return this;
+	}
+
+	/**
+	 * 设置Cookie<br>
+	 * 自定义Cookie后会覆盖Hutool的默认Cookie行为
+	 *
+	 * @param cookies Cookie值数组，如果为{@code null}则设置无效，使用默认Cookie行为
+	 * @return this
+	 * @since 5.4.1
+	 */
+	public HttpRequest cookie(Collection<HttpCookie> cookies) {
+		return cookie(CollUtil.isEmpty(cookies) ? null : cookies.toArray(new HttpCookie[0]));
 	}
 
 	/**
@@ -829,6 +842,20 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	}
 
 	/**
+	 * 设置Http代理
+	 *
+	 * @param host 代理 主机
+	 * @param port 代理 端口
+	 * @return this
+	 * @since 5.4.5
+	 */
+	public HttpRequest setHttpProxy(String host, int port) {
+		final Proxy proxy = new Proxy(Proxy.Type.HTTP,
+				new InetSocketAddress(host, port));
+		return setProxy(proxy);
+	}
+
+	/**
 	 * 设置代理
 	 *
 	 * @param proxy 代理 {@link Proxy}
@@ -953,16 +980,43 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	}
 
 	/**
-	 * 简单验证
+	 * 简单验证，生成的头信息类似于：
+	 * <pre>
+	 * Authorization: Basic YWxhZGRpbjpvcGVuc2VzYW1l
+	 * </pre>
 	 *
 	 * @param username 用户名
 	 * @param password 密码
-	 * @return HttpRequest
+	 * @return this
 	 */
 	public HttpRequest basicAuth(String username, String password) {
-		final String data = username.concat(":").concat(password);
-		final String base64 = Base64.encode(data, charset);
-		return auth("Basic " + base64);
+		return auth(HttpUtil.buildBasicAuth(username, password, charset));
+	}
+
+	/**
+	 * 简单代理验证，生成的头信息类似于：
+	 * <pre>
+	 * Proxy-Authorization: Basic YWxhZGRpbjpvcGVuc2VzYW1l
+	 * </pre>
+	 *
+	 * @param username 用户名
+	 * @param password 密码
+	 * @return this
+	 * @since 5.4.6
+	 */
+	public HttpRequest basicProxyAuth(String username, String password) {
+		return proxyAuth(HttpUtil.buildBasicAuth(username, password, charset));
+	}
+
+	/**
+	 * 令牌验证，生成的头类似于："Authorization: Bearer XXXXX"，一般用于JWT
+	 *
+	 * @param token 令牌内容
+	 * @return HttpRequest
+	 * @since 5.5.3
+	 */
+	public HttpRequest bearerAuth(String token) {
+		return auth("Bearer " + token);
 	}
 
 	/**
@@ -974,6 +1028,18 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	 */
 	public HttpRequest auth(String content) {
 		header(Header.AUTHORIZATION, content, true);
+		return this;
+	}
+
+	/**
+	 * 验证，简单插入Authorization头
+	 *
+	 * @param content 验证内容
+	 * @return HttpRequest
+	 * @since 5.4.6
+	 */
+	public HttpRequest proxyAuth(String content) {
+		header(Header.PROXY_AUTHORIZATION, content, true);
 		return this;
 	}
 
@@ -998,10 +1064,10 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 
 		this.httpConnection = HttpConnection
 				.create(this.url.toURL(this.urlHandler), this.proxy)//
-				.setMethod(this.method)//
-				.setHttpsInfo(this.hostnameVerifier, this.ssf)//
 				.setConnectTimeout(this.connectionTimeout)//
 				.setReadTimeout(this.readTimeout)//
+				.setMethod(this.method)//
+				.setHttpsInfo(this.hostnameVerifier, this.ssf)//
 				// 定义转发
 				.setInstanceFollowRedirects(this.maxRedirectCount > 0)
 				// 流方式上传数据
@@ -1039,9 +1105,9 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	}
 
 	/**
-	 * 调用转发，如果需要转发返回转发结果，否则返回<code>null</code>
+	 * 调用转发，如果需要转发返回转发结果，否则返回{@code null}
 	 *
-	 * @return {@link HttpResponse}，无转发返回 <code>null</code>
+	 * @return {@link HttpResponse}，无转发返回 {@code null}
 	 */
 	private HttpResponse sendRedirectIfPossible() {
 		if (this.maxRedirectCount < 1) {

@@ -50,6 +50,16 @@ public final class Props extends Properties implements BasicTypeGetter<String>, 
 	 */
 	public final static String EXT_NAME = "properties";
 
+	/**
+	 * 构建一个空的Props，用于手动加入参数
+	 *
+	 * @return Setting
+	 * @since 5.4.3
+	 */
+	public static Props create() {
+		return new Props();
+	}
+
 	// ----------------------------------------------------------------------- 私有属性 start
 	/** 属性文件的URL */
 	private URL propertiesFileUrl;
@@ -95,7 +105,6 @@ public final class Props extends Properties implements BasicTypeGetter<String>, 
 	 * 构造
 	 */
 	public Props() {
-		super();
 	}
 
 	/**
@@ -228,7 +237,7 @@ public final class Props extends Properties implements BasicTypeGetter<String>, 
 		if (null != charset) {
 			this.charset = charset;
 		}
-		this.load(new UrlResource(propertiesUrl));
+		this.load(propertiesUrl);
 	}
 
 	/**
@@ -246,16 +255,26 @@ public final class Props extends Properties implements BasicTypeGetter<String>, 
 
 	/**
 	 * 初始化配置文件
-	 * 
-	 * @param urlResource {@link UrlResource}
+	 *
+	 * @param url {@link URL}
+	 * @since 5.5.2
 	 */
-	public void load(Resource urlResource) {
-		this.propertiesFileUrl = urlResource.getUrl();
+	public void load(URL url) {
+		load(new UrlResource(url));
+	}
+
+	/**
+	 * 初始化配置文件
+	 * 
+	 * @param resource {@link Resource}
+	 */
+	public void load(Resource resource) {
+		this.propertiesFileUrl = resource.getUrl();
 		if (null == this.propertiesFileUrl) {
-			throw new SettingRuntimeException("Can not find properties file: [{}]", urlResource);
+			throw new SettingRuntimeException("Can not find properties file: [{}]", resource);
 		}
 
-		try (final BufferedReader reader = urlResource.getReader(charset)) {
+		try (final BufferedReader reader = resource.getReader(charset)) {
 			super.load(reader);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
@@ -266,7 +285,7 @@ public final class Props extends Properties implements BasicTypeGetter<String>, 
 	 * 重新加载配置文件
 	 */
 	public void load() {
-		this.load(new UrlResource(this.propertiesFileUrl));
+		this.load(this.propertiesFileUrl);
 	}
 
 	/**

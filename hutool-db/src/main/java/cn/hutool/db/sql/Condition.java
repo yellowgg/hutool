@@ -5,6 +5,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.text.StrSpliter;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.CharUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 
 import java.util.Arrays;
@@ -67,6 +68,11 @@ public class Condition extends CloneSupport<Condition> {
 	 * between firstValue and secondValue
 	 */
 	private Object secondValue;
+
+	/**
+	 * 与前一个Condition连接的逻辑运算符，可以是and或or
+	 */
+	private LogicalOperator linkOperator = LogicalOperator.AND;
 
 	/**
 	 * 解析为Condition
@@ -282,6 +288,26 @@ public class Condition extends CloneSupport<Condition> {
 		this.secondValue = secondValue;
 	}
 
+	/**
+	 * 获取与前一个Condition连接的逻辑运算符，可以是and或or
+	 *
+	 * @return 与前一个Condition连接的逻辑运算符，可以是and或or
+	 * @since 5.4.3
+	 */
+	public LogicalOperator getLinkOperator() {
+		return linkOperator;
+	}
+
+	/**
+	 * 设置与前一个Condition连接的逻辑运算符，可以是and或or
+	 *
+	 * @param linkOperator 与前一个Condition连接的逻辑运算符，可以是and或or
+	 * @since 5.4.3
+	 */
+	public void setLinkOperator(LogicalOperator linkOperator) {
+		this.linkOperator = linkOperator;
+	}
+
 	// --------------------------------------------------------------- Getters and Setters end
 
 	@Override
@@ -419,7 +445,7 @@ public class Condition extends CloneSupport<Condition> {
 			return;
 		}
 
-		valueStr = valueStr.trim();
+		valueStr = StrUtil.trim(valueStr);
 
 		// 处理null
 		if (StrUtil.endWithIgnoreCase(valueStr, "null")) {
@@ -438,7 +464,7 @@ public class Condition extends CloneSupport<Condition> {
 			}
 		}
 
-		List<String> strs = StrUtil.split(valueStr, StrUtil.C_SPACE, 2);
+		final List<String> strs = StrUtil.split(valueStr, StrUtil.C_SPACE, 2);
 		if (strs.size() < 2) {
 			return;
 		}
@@ -447,7 +473,9 @@ public class Condition extends CloneSupport<Condition> {
 		final String firstPart = strs.get(0).trim().toUpperCase();
 		if (OPERATORS.contains(firstPart)) {
 			this.operator = firstPart;
-			this.value = strs.get(1).trim();
+			// 比较符号后跟大部分为数字，此处做转换（IN不做转换）
+			final String valuePart = strs.get(1);
+			this.value = isOperatorIn() ? valuePart : tryToNumber(valuePart);
 			return;
 		}
 
@@ -500,6 +528,24 @@ public class Condition extends CloneSupport<Condition> {
 			return value;
 		}
 		return value.substring(from, to);
+	}
+
+	/**
+	 * 尝试转换为数字，转换失败返回字符串
+	 *
+	 * @param value 被转换的字符串值
+	 * @return 转换后的值
+	 */
+	private static Object tryToNumber(String value){
+		value = StrUtil.trim(value);
+		if(false == NumberUtil.isNumber(value)){
+			return value;
+		}
+		try{
+			return NumberUtil.parseNumber(value);
+		} catch (Exception ignore){
+			return value;
+		}
 	}
 	// ----------------------------------------------------------------------------------------------- Private method end
 }

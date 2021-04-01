@@ -1,7 +1,9 @@
 package cn.hutool.core.text.csv;
 
 import cn.hutool.core.annotation.Alias;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.CharsetUtil;
 import lombok.Data;
 import org.junit.Assert;
@@ -16,7 +18,9 @@ public class CsvReaderTest {
 	public void readTest() {
 		CsvReader reader = new CsvReader();
 		CsvData data = reader.read(ResourceUtil.getReader("test.csv", CharsetUtil.CHARSET_UTF_8));
-		Assert.assertEquals("关注\"对象\"", data.getRow(0).get(2));
+		Assert.assertEquals("sss,sss", data.getRow(0).get(0));
+		Assert.assertEquals("性别", data.getRow(0).get(2));
+		Assert.assertEquals("关注\"对象\"", data.getRow(0).get(3));
 	}
 
 	@Test
@@ -70,5 +74,14 @@ public class CsvReaderTest {
 		private String gender;
 		private String focus;
 		private Integer age;
+	}
+
+	@Test
+	public void readTest2(){
+		final CsvReader reader = CsvUtil.getReader();
+		final CsvData read = reader.read(FileUtil.file("d:/test/test.csv"));
+		for (CsvRow strings : read) {
+			Console.log(strings);
+		}
 	}
 }
