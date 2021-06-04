@@ -1,7 +1,6 @@
 package cn.hutool.core.collection;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.Console;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.lang.Filter;
@@ -685,6 +684,29 @@ public class CollUtilTest {
 		Assert.assertEquals(Integer.valueOf(2), countMap.get("b"));
 		Assert.assertEquals(Integer.valueOf(2), countMap.get("c"));
 		Assert.assertEquals(Integer.valueOf(1), countMap.get("d"));
+	}
+
+	@Test
+	public void indexOfTest() {
+		ArrayList<String> list = CollUtil.newArrayList("a", "b", "c", "c", "a", "b", "d");
+		final int i = CollUtil.indexOf(list, (str) -> str.charAt(0) == 'c');
+		Assert.assertEquals(2, i);
+	}
+
+	@Test
+	public void lastIndexOfTest() {
+		// List有优化
+		ArrayList<String> list = CollUtil.newArrayList("a", "b", "c", "c", "a", "b", "d");
+		final int i = CollUtil.lastIndexOf(list, (str) -> str.charAt(0) == 'c');
+		Assert.assertEquals(3, i);
+	}
+
+	@Test
+	public void lastIndexOfSetTest() {
+		Set<String> list = CollUtil.set(true, "a", "b", "c", "c", "a", "b", "d");
+		// 去重后c排第三
+		final int i = CollUtil.lastIndexOf(list, (str) -> str.charAt(0) == 'c');
+		Assert.assertEquals(2, i);
 	}
 
 	@Test

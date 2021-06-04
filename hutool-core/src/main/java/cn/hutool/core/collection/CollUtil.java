@@ -21,6 +21,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -1583,6 +1584,57 @@ public class CollUtil {
 	}
 
 	/**
+	 * 获取匹配规则定义中匹配到元素的第一个位置<br>
+	 * 此方法对于某些无序集合的位置信息，以转换为数组后的位置为准。
+	 *
+	 * @param <T>        元素类型
+	 * @param collection 集合
+	 * @param matcher    匹配器，为空则全部匹配
+	 * @return 第一个位置
+	 * @since 5.6.6
+	 */
+	public static <T> int indexOf(Collection<T> collection, Matcher<T> matcher) {
+		if (isNotEmpty(collection)) {
+			int index = 0;
+			for (T t : collection) {
+				if (null == matcher || matcher.match(t)) {
+					return index;
+				}
+				index++;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * 获取匹配规则定义中匹配到元素的最后位置<br>
+	 * 此方法对于某些无序集合的位置信息，以转换为数组后的位置为准。
+	 *
+	 * @param <T>        元素类型
+	 * @param collection 集合
+	 * @param matcher    匹配器，为空则全部匹配
+	 * @return 最后一个位置
+	 * @since 5.6.6
+	 */
+	public static <T> int lastIndexOf(Collection<T> collection, Matcher<T> matcher) {
+		if(collection instanceof List){
+			// List的查找最后一个有优化算法
+			return ListUtil.lastIndexOf((List<T>)collection, matcher);
+		}
+		int matchIndex = -1;
+		if (isNotEmpty(collection)) {
+			int index = collection.size();
+			for (T t : collection) {
+				if (null == matcher || matcher.match(t)) {
+					matchIndex = index;
+				}
+				index--;
+			}
+		}
+		return matchIndex;
+	}
+
+	/**
 	 * 获取匹配规则定义中匹配到元素的所有位置<br>
 	 * 此方法对于某些无序集合的位置信息，以转换为数组后的位置为准。
 	 *
@@ -2916,7 +2968,7 @@ public class CollUtil {
 	 * @author Looly
 	 */
 	@FunctionalInterface
-	public interface Consumer<T> {
+	public interface Consumer<T> extends Serializable {
 		/**
 		 * 接受并处理一个参数
 		 *
@@ -2934,7 +2986,7 @@ public class CollUtil {
 	 * @author Looly
 	 */
 	@FunctionalInterface
-	public interface KVConsumer<K, V> {
+	public interface KVConsumer<K, V> extends Serializable{
 		/**
 		 * 接受并处理一对参数
 		 *

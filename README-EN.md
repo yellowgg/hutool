@@ -2,10 +2,10 @@
 	<a href="https://hutool.cn/"><img src="https://cdn.jsdelivr.net/gh/looly/hutool-site/images/logo.jpg" width="45%"></a>
 </p>
 <p align="center">
-	<strong>A set of tools that keep Java sweet.</strong>
+	<strong>🍬A set of tools that keep Java sweet.</strong>
 </p>
 <p align="center">
-	<a href="https://hutool.cn">https://hutool.cn/</a>
+	👉 <a href="https://hutool.cn">https://hutool.cn/</a> 👈
 </p>
 
 <p align="center">
@@ -36,9 +36,6 @@
 	<a target="_blank" href='https://github.com/dromara/hutool'>
 		<img src="https://img.shields.io/github/stars/dromara/hutool.svg?style=social" alt="github star"/>
 	</a>
-	<a target="_blank" href='https://app.netlify.com/sites/hutool/deploys'>
-		<img src="https://api.netlify.com/api/v1/badges/7e0824f9-5f9a-4df0-89dd-b2fccfbeccb1/deploy-status" alt="netlify"/>
-	</a>
 </p>
 
 <br/>
@@ -48,31 +45,31 @@
 
 -------------------------------------------------------------------------------
 
-[**中文说明**](README.md)
+[**🌎中文说明**](README.md)
 
 -------------------------------------------------------------------------------
 
-## Introduction
+## 📚Introduction
 **Hutool** is a small but comprehensive library of Java tools, encapsulation by static methods, reduce the cost of learning related APIs, increase productivity, and make Java as elegant as a functional programming language,let the Java be "sweet" too.
 
 **Hutool** tools and methods from each user's crafted, it covers all aspects of the underlying code of Java development, it is a powerful tool for large project development to solve small problems, but also the efficiency of small projects;
 
 **Hutool** is a project "util" package friendly alternative, it saves developers on the project of common classes and common tool methods of encapsulation time, so that development focus on business, at the same time can minimize the encapsulation is not perfect to avoid the bugs.
 
-### Origin of the 'Hutool' name
+### 🎁Origin of the 'Hutool' name
 
 **Hutool = Hu + tool**，Is the original company project after the stripping of the underlying code of the open source library , "Hu" is the short name of the company , 'tool' that tool .
 
 Hutool,' Hútú '(Chinese Pinyin)，On the one hand, it is simple and easy to understand, on the other hand, it means "hard to be confused".(note: confused means 'Hútú (糊涂)' in china )
 
-### How Hutool is changing the way we code
+### 🍺How Hutool is changing the way we code
 
 The goal of  **Hutool**  is to use a simple function instead of a complex piece of code, thus avoiding the problem of "copy and paste" code as much as possible and revolutionizing the way we write code.
 
 To calculate MD5 for example:
 
-- 【Before】Open a search engine -> search "Java MD5 encryption" -> open a blog -> copy and paste -> change it to work.
-- 【Now】import Hutool -> SecureUtil.md5()
+- 👴【Before】Open a search engine -> search "Java MD5 encryption" -> open a blog -> copy and paste -> change it to work.
+- 👦【Now   】import Hutool -> SecureUtil.md5()
 
 Hutool exists to reduce code search costs and avoid bugs caused by imperfect code on the web.
 
@@ -80,7 +77,7 @@ Hutool exists to reduce code search costs and avoid bugs caused by imperfect cod
 > this README is PR by [chengxian-yi](https://gitee.com/yichengxian)
 -------------------------------------------------------------------------------
 
-## Module
+## 🛠️Module
 A Java-based tool class for files, streams, encryption and decryption, transcoding, regular, thread, XML and other JDK methods for encapsulation，composing various Util tool classes, as well as providing the following modules：
 
 | module          |     description                                                              |
@@ -108,42 +105,41 @@ Each module can be introduced individually, or all modules can be introduced by 
 
 -------------------------------------------------------------------------------
 
-## Doc
+## 📝Doc
 
-[Chinese documentation](https://www.hutool.cn/docs/)
+[📘Chinese documentation](https://www.hutool.cn/docs/)
 
-[API](https://apidoc.gitee.com/dromara/hutool/)
+[📙API](https://apidoc.gitee.com/dromara/hutool/)
 
-[Video](https://www.bilibili.com/video/BV1bQ4y1M7d9?p=2)
+[🎬Video](https://www.bilibili.com/video/BV1bQ4y1M7d9?p=2)
 
 -------------------------------------------------------------------------------
 
-## Install
+## 📦Install
 
-### Maven
+### 🍊Maven
 ```xml
 <dependency>
     <groupId>cn.hutool</groupId>
     <artifactId>hutool-all</artifactId>
-    <version>5.6.2</version>
+    <version>5.6.6</version>
 </dependency>
 ```
 
-### Gradle
+### 🍐Gradle
 ```
-compile 'cn.hutool:hutool-all:5.6.2'
+compile 'cn.hutool:hutool-all:5.6.6'
 ```
 
-## Download
+## 📥Download
 
-- [Maven1](https://repo1.maven.org/maven2/cn/hutool/hutool-all/5.6.2/)
-- [Maven2](http://repo2.maven.org/maven2/cn/hutool/hutool-all/5.6.2/)
+- [Maven Repo](https://repo1.maven.org/maven2/cn/hutool/hutool-all/5.6.6/)
 
-> note:
+> 🔔️note:
 > Hutool 5.x supports JDK8+ and is not tested on Android platforms, and cannot guarantee that all tool classes or tool methods are available.
 > If your project uses JDK7, please use Hutool 4.x version.
 
-### Compile and install
+### 🚽Compile and install
 
 Download the entire project source code
 
@@ -158,9 +154,9 @@ cd ${hutool}
 
 -------------------------------------------------------------------------------
 
-## Other
+## 🏗️Other
 
-### Branch Description
+### 🎋Branch Description
 
 Hutool's source code is divided into two branches:
 
@@ -169,14 +165,14 @@ Hutool's source code is divided into two branches:
 | v5-master | The master branch, the branch used by the release version, is the same as the jar committed to the central repository and does not receive any pr or modifications. |
 | v5-dev    | Development branch, which defaults to the next SNAPSHOT version, accepts modifications or pr |
 
-### Provide feedback or suggestions on bugs
+### 🐞Provide feedback or suggestions on bugs
 
 When submitting feedback, please indicate which JDK version, Hutool version, and related dependency library version you are using.
 
 - [Gitee issue](https://gitee.com/dromara/hutool/issues)
 - [Github issue](https://github.com/dromara/hutool/issues)
 
-### Principles of PR(pull request)
+### 🧬Principles of PR(pull request)
 
 Hutool welcomes anyone to contribute code to Hutool, but the author suffers from OCD and needs to submit a pr (pull request) that meets some specifications in order to care for the patient.：
 
@@ -187,22 +183,26 @@ Hutool welcomes anyone to contribute code to Hutool, but the author suffers from
 
 -------------------------------------------------------------------------------
 
-## Star Hutool
+## ⭐Star Hutool
 
 [![Giteye chart](https://chart.giteye.net/gitee/dromara/hutool/GMSL7VDA.png)](https://giteye.net/chart/GMSL7VDA)
 
-## Donate
+[![Stargazers over time](https://starchart.cc/dromara/hutool.svg)](https://starchart.cc/dromara/hutool)
+
+## 💳Donate
 
 If you think Hutool is good, you can donate to buy tshe author a pack of chili~, thanks in advance ^_^.
 
-[gitee donate](https://gitee.com/dromara/hutool)
+[Gitee donate](https://gitee.com/dromara/hutool)
 
-## WeChat Official Account
+[Dromara donate](https://dromara.gitee.io/donate.html)
 
-#### Welcome to the official account of Hutool cooperation.
+## 📌WeChat Official Account
+
+#### 🐧Welcome to the official account of Hutool cooperation.
 
 ![Java2B](https://cdn.jsdelivr.net/gh/looly/hutool-site/images/qrcode.jpg)
 
-#### Welcome to organization Dromara
+#### 🐧Welcome to organization Dromara
 
 ![Dromara](https://dromara.org/img/qrcode/qrcode_1.png)

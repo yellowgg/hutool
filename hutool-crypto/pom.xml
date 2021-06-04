@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>cn.hutool</groupId>
 		<artifactId>hutool-parent</artifactId>
-		<version>5.6.2</version>
+		<version>5.6.6</version>
 	</parent>
 
 	<artifactId>hutool-crypto</artifactId>
@@ -27,12 +27,12 @@
 			<artifactId>hutool-core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15to18</artifactId>
-			<version>${bouncycastle.version}</version>
-			<scope>compile</scope>
-			<optional>true</optional>
-		</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk15to18</artifactId>
+				<version>${bouncycastle.version}</version>
+				<scope>compile</scope>
+				<optional>true</optional>
+			</dependency>
 	</dependencies>
 </project>

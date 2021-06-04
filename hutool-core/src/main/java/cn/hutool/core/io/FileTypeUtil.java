@@ -39,7 +39,7 @@ public class FileTypeUtil {
 		FILE_TYPE_MAP.put("4749463839", "gif"); // GIF (gif)
 		FILE_TYPE_MAP.put("49492a00227105008037", "tif"); // TIFF (tif)
 		FILE_TYPE_MAP.put("424d228c010000000000", "bmp"); // 16色位图(bmp)
-		FILE_TYPE_MAP.put("424d8240090000000000", "bmp"); // 24位位图(bmp)
+		FILE_TYPE_MAP.put("424d8240090000000000", "bmp"); // 24色位图(bmp)
 		FILE_TYPE_MAP.put("424d8e1b030000000000", "bmp"); // 256色位图(bmp)
 		FILE_TYPE_MAP.put("41433130313500000000", "dwg"); // CAD (dwg)
 		FILE_TYPE_MAP.put("7b5c727466315c616e73", "rtf"); // Rich Text Format (rtf)
@@ -50,6 +50,7 @@ public class FileTypeUtil {
 		FILE_TYPE_MAP.put("255044462d312e", "pdf"); // Adobe Acrobat (pdf)
 		FILE_TYPE_MAP.put("2e524d46000000120001", "rmvb"); // rmvb/rm相同
 		FILE_TYPE_MAP.put("464c5601050000000900", "flv"); // flv与f4v相同
+		FILE_TYPE_MAP.put("0000001C66747970", "mp4");
 		FILE_TYPE_MAP.put("00000020667479706", "mp4");
 		FILE_TYPE_MAP.put("00000018667479706D70", "mp4");
 		FILE_TYPE_MAP.put("49443303000000002176", "mp3");

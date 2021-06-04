@@ -12,6 +12,8 @@ package cn.hutool.core.util;
  *     <li>地址</li>
  *     <li>电子邮件</li>
  *     <li>密码</li>
+ *     <li>车牌</li>
+ *     <li>银行卡号</li>
  * </ul>
  *
  * @author dazer and neusoft and qiaomu
@@ -42,7 +44,9 @@ public class DesensitizedUtil {
 		//密码
 		PASSWORD,
 		//中国大陆车牌，包含普通车辆、新能源车辆
-		CAR_LICENSE
+		CAR_LICENSE,
+		//银行卡
+		BANK_CARD
 	}
 
 	/**
@@ -57,6 +61,7 @@ public class DesensitizedUtil {
 	 * DesensitizedUtil.desensitized("duandazhi-jack@gmail.com.cn", DesensitizedUtils.DesensitizedType.EMAIL)) = "d*************@gmail.com.cn"
 	 * DesensitizedUtil.desensitized("1234567890", DesensitizedUtils.DesensitizedType.PASSWORD)) = "**********"
 	 * DesensitizedUtil.desensitized("苏D40000", DesensitizedUtils.DesensitizedType.CAR_LICENSE)) = "苏D4***0"
+	 * DesensitizedUtil.desensitized("11011111222233333256", DesensitizedUtils.DesensitizedType.BANK_CARD)) = "1101 **** **** **** 3256"
 	 * </pre>
 	 *
 	 * @param str              字符串
@@ -98,6 +103,9 @@ public class DesensitizedUtil {
 			case CAR_LICENSE:
 				newStr = DesensitizedUtil.carLicense(String.valueOf(str));
 				break;
+			case BANK_CARD:
+				newStr = DesensitizedUtil.bankCard(String.valueOf(str));
+				break;
 			default:
 		}
 		return newStr;
@@ -122,8 +130,7 @@ public class DesensitizedUtil {
 		if (StrUtil.isBlank(fullName)) {
 			return StrUtil.EMPTY;
 		}
-		final String name = StrUtil.subPre(fullName, 1);
-		return StrUtil.padAfter(name, StrUtil.length(fullName), "*");
+		return StrUtil.hide(fullName, 1, fullName.length());
 	}
 
 	/**
@@ -244,5 +251,37 @@ public class DesensitizedUtil {
 			carLicense = StrUtil.hide(carLicense, 3, 7);
 		}
 		return carLicense;
+	}
+
+	/**
+	 * 银行卡号脱敏
+	 * eg: 1101 **** **** **** 3256
+	 *
+	 * @param bankCardNo 银行卡号
+	 * @return 脱敏之后的银行卡号
+	 * @since 5.6.3
+	 */
+	public static String bankCard(String bankCardNo) {
+		if (StrUtil.isBlank(bankCardNo)) {
+			return bankCardNo;
+		}
+		bankCardNo = StrUtil.trim(bankCardNo);
+		if (bankCardNo.length() < 9) {
+			return bankCardNo;
+		}
+
+		final int length = bankCardNo.length();
+		final int midLength = length - 8;
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(bankCardNo, 0, 4);
+		for (int i = 0; i < midLength; ++i) {
+			if (i % 4 == 0) {
+				buf.append(CharUtil.SPACE);
+			}
+			buf.append('*');
+		}
+		buf.append(CharUtil.SPACE).append(bankCardNo, length - 4, length);
+		return buf.toString();
 	}
 }

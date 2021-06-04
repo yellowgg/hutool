@@ -5,7 +5,12 @@ import cn.hutool.core.lang.Validator;
 
 
 /**
- * 手机号工具类
+ * 电话号码工具类，包括：
+ * <ul>
+ *     <li>手机号码</li>
+ *     <li>400、800号码</li>
+ *     <li>座机号码</li>
+ * </ul>
  *
  * @author dahuoyzs
  * @since 5.3.11
@@ -24,6 +29,39 @@ public class PhoneUtil {
 	}
 
 	/**
+	 * 验证是否为手机号码（香港）
+	 * @param value 手机号码
+	 * @return 是否为香港手机号码
+	 * @since 5.6.3
+	 * @author dazer, ourslook
+	 */
+	public static boolean isMobileHk(CharSequence value) {
+		return Validator.isMatchRegex(PatternPool.MOBILE_HK, value);
+	}
+
+	/**
+	 * 验证是否为手机号码（台湾）
+	 * @param value 手机号码
+	 * @return 是否为台湾手机号码
+	 * @since 5.6.6
+	 * @author ihao
+	 */
+	public static boolean isMobileTw(CharSequence value) {
+		return Validator.isMatchRegex(PatternPool.MOBILE_TW, value);
+	}
+
+	/**
+	 * 验证是否为手机号码（澳门）
+	 * @param value 手机号码
+	 * @return 是否为澳门手机号码
+	 * @since 5.6.6
+	 * @author ihao
+	 */
+	public static boolean isMobileMo(CharSequence value) {
+		return Validator.isMatchRegex(PatternPool.MOBILE_MO, value);
+	}
+
+	/**
 	 * 验证是否为座机号码（中国）
 	 *
 	 * @param value 值
@@ -35,14 +73,26 @@ public class PhoneUtil {
 	}
 
 	/**
-	 * 验证是否为座机号码+手机号码（中国）
+	 * 验证是否为座机号码（中国）+ 400 + 800
 	 *
 	 * @param value 值
-	 * @return 是否为座机号码+手机号码（中国）
+	 * @return 是否为座机号码（中国）
+	 * @since 5.6.3
+	 * @author dazer, ourslook
+	 */
+	public static boolean isTel400800(CharSequence value) {
+		return Validator.isMatchRegex(PatternPool.TEL_400_800, value);
+	}
+
+	/**
+	 * 验证是否为座机号码+手机号码（CharUtil中国）+ 400 + 800电话 + 手机号号码（香港）
+	 *
+	 * @param value 值
+	 * @return 是否为座机号码+手机号码（中国）+手机号码（香港）+手机号码（台湾）+手机号码（澳门）
 	 * @since 5.3.11
 	 */
 	public static boolean isPhone(CharSequence value) {
-		return isMobile(value) || isTel(value);
+		return isMobile(value) || isTel400800(value) || isMobileHk(value) || isMobileTw(value) || isMobileMo(value);
 	}
 
 	/**
@@ -111,5 +161,4 @@ public class PhoneUtil {
 	public static CharSequence subAfter(CharSequence phone) {
 		return StrUtil.sub(phone, 7, 11);
 	}
-
 }

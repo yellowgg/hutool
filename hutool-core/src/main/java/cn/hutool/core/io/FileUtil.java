@@ -78,6 +78,17 @@ public class FileUtil extends PathUtil {
 	 * 当Path为文件形式时, path会加入一个表示文件的前缀
 	 */
 	public static final String PATH_FILE_PRE = URLUtil.FILE_URL_PREFIX;
+	/**
+	 * 文件路径分隔符<br>
+	 * 在Unix和Linux下 是{@code '/'}; 在Windows下是 {@code '\'}
+	 */
+	public static final String FILE_SEPARATOR = File.separator;
+	/**
+	 * 多个PATH之间的分隔符<br>
+	 * 在Unix和Linux下 是{@code ':'}; 在Windows下是 {@code ';'}
+	 */
+	public static final String PATH_SEPARATOR = File.pathSeparator;
+
 
 	/**
 	 * 是否为Windows环境
@@ -116,7 +127,7 @@ public class FileUtil extends PathUtil {
 	 * @return 是否为空，当提供非目录时，返回false
 	 */
 	public static boolean isEmpty(File file) {
-		if (null == file) {
+		if (null == file || false == file.exists()) {
 			return true;
 		}
 
@@ -1411,8 +1422,8 @@ public class FileUtil extends PathUtil {
 		pathToUse = StrUtil.removePrefixIgnoreCase(pathToUse, URLUtil.FILE_URL_PREFIX);
 
 		// 识别home目录形式，并转换为绝对路径
-		if (pathToUse.startsWith("~")) {
-			pathToUse = pathToUse.replace("~", getUserHomePath());
+		if (StrUtil.startWith(pathToUse, '~')) {
+			pathToUse = getUserHomePath() + pathToUse.substring(1);
 		}
 
 		// 统一使用斜杠

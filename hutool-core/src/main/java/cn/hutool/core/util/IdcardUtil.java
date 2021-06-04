@@ -153,6 +153,10 @@ public class IdcardUtil {
 	 * @return 是否有效
 	 */
 	public static boolean isValidCard(String idCard) {
+		if(StrUtil.isBlank(idCard)){
+			return false;
+		}
+
 		idCard = idCard.trim();
 		int length = idCard.length();
 		switch (length) {
@@ -662,6 +666,7 @@ public class IdcardUtil {
 		private final String cityCode;
 		private final DateTime birthDate;
 		private final Integer gender;
+		private final int age;
 
 		/**
 		 * 构造
@@ -673,6 +678,7 @@ public class IdcardUtil {
 			this.cityCode = IdcardUtil.getCityCodeByIdCard(idcard);
 			this.birthDate = IdcardUtil.getBirthDate(idcard);
 			this.gender = IdcardUtil.getGenderByIdCard(idcard);
+			this.age = IdcardUtil.getAgeByIdCard(idcard);
 		}
 
 		/**
@@ -720,6 +726,14 @@ public class IdcardUtil {
 			return this.gender;
 		}
 
+		/**
+		 * 获取年龄
+		 * @return 年龄
+		 */
+		public int getAge() {
+			return age;
+		}
+
 		@Override
 		public String toString() {
 			return "Idcard{" +
@@ -727,6 +741,7 @@ public class IdcardUtil {
 					", cityCode='" + cityCode + '\'' +
 					", birthDate=" + birthDate +
 					", gender=" + gender +
+					", age=" + age +
 					'}';
 		}
 	}
