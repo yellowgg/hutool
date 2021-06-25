@@ -1383,7 +1383,7 @@ public class FileUtil extends PathUtil {
 	 * <ol>
 	 * <li>1. 统一用 /</li>
 	 * <li>2. 多个 / 转换为一个 /</li>
-	 * <li>3. 去除两边空格</li>
+	 * <li>3. 去除左边空格</li>
 	 * <li>4. .. 和 . 转换为绝对路径，当..多于已有路径时，直接返回根路径</li>
 	 * </ol>
 	 * <p>
@@ -1404,7 +1404,7 @@ public class FileUtil extends PathUtil {
 	 * "C:\\foo\\..\\bar" =》 "C:/bar"
 	 * "C:\\..\\bar" =》 "C:/bar"
 	 * "~/foo/../bar/" =》 "~/bar/"
-	 * "~/../bar" =》 "bar"
+	 * "~/../bar" =》 普通用户运行是'bar的home目录'，ROOT用户运行是'/bar'
 	 * </pre>
 	 *
 	 * @param path 原路径
@@ -1414,7 +1414,6 @@ public class FileUtil extends PathUtil {
 		if (path == null) {
 			return null;
 		}
-
 
 		// 兼容Spring风格的ClassPath路径，去除前缀，不区分大小写
 		String pathToUse = StrUtil.removePrefixIgnoreCase(path, URLUtil.CLASSPATH_URL_PREFIX);
@@ -1427,13 +1426,15 @@ public class FileUtil extends PathUtil {
 		}
 
 		// 统一使用斜杠
-		pathToUse = pathToUse.replaceAll("[/\\\\]+", StrUtil.SLASH).trim();
+		pathToUse = pathToUse.replaceAll("[/\\\\]+", StrUtil.SLASH);
+		// 去除开头空白符，末尾空白符合法，不去除
+		pathToUse = StrUtil.trimStart(pathToUse);
 		//兼容Windows下的共享目录路径（原始路径如果以\\开头，则保留这种路径）
 		if (path.startsWith("\\\\")) {
 			pathToUse = "\\" + pathToUse;
 		}
 
-		String prefix = "";
+		String prefix = StrUtil.EMPTY;
 		int prefixIndex = pathToUse.indexOf(StrUtil.COLON);
 		if (prefixIndex > -1) {
 			// 可能Windows风格路径

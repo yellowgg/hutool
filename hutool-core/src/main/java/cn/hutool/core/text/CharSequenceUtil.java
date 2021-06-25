@@ -1,5 +1,6 @@
 package cn.hutool.core.text;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.comparator.VersionComparator;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
@@ -47,12 +48,6 @@ public class CharSequenceUtil {
 	 * 字符串常量：空格符 {@code " "}
 	 */
 	public static final String SPACE = " ";
-
-	/**
-	 * <p>The maximum size to which the padding constant(s) can expand.</p>
-	 * <p>填充常量可以最大填充的数量</p>
-	 */
-	private static final int PAD_LIMIT = 8192;
 
 	/**
 	 * <p>字符串是否为空白，空白的定义如下：</p>
@@ -1628,17 +1623,6 @@ public class CharSequenceUtil {
 	// ------------------------------------------------------------------------ split
 
 	/**
-	 * 切分字符串
-	 *
-	 * @param str       被切分的字符串
-	 * @param separator 分隔符字符
-	 * @return 切分后的数组
-	 */
-	public static String[] splitToArray(CharSequence str, char separator) {
-		return splitToArray(str, separator, 0);
-	}
-
-	/**
 	 * 切分字符串为long数组
 	 *
 	 * @param str       被切分的字符串
@@ -1700,6 +1684,33 @@ public class CharSequenceUtil {
 	}
 
 	/**
+	 * 切分字符串，如果分隔符不存在则返回原字符串
+	 *
+	 * @param str       被切分的字符串
+	 * @param separator 分隔符
+	 * @return 字符串
+	 * @since 5.6.7
+	 */
+	public static String[] splitToArray(CharSequence str, CharSequence separator) {
+		if (str == null) {
+			return new String[]{};
+		}
+
+		return StrSplitter.splitToArray(str.toString(), str(separator), 0, false, false);
+	}
+
+	/**
+	 * 切分字符串
+	 *
+	 * @param str       被切分的字符串
+	 * @param separator 分隔符字符
+	 * @return 切分后的数组
+	 */
+	public static String[] splitToArray(CharSequence str, char separator) {
+		return splitToArray(str, separator, 0);
+	}
+
+	/**
 	 * 切分字符串
 	 *
 	 * @param str       被切分的字符串
@@ -1711,7 +1722,7 @@ public class CharSequenceUtil {
 		if (null == str) {
 			return new String[]{};
 		}
-		return StrSpliter.splitToArray(str.toString(), separator, limit, false, false);
+		return StrSplitter.splitToArray(str.toString(), separator, limit, false, false);
 	}
 
 	/**
@@ -1805,7 +1816,33 @@ public class CharSequenceUtil {
 		if (null == str) {
 			return new ArrayList<>(0);
 		}
-		return StrSpliter.split(str.toString(), separator, limit, isTrim, ignoreEmpty);
+		return StrSplitter.split(str.toString(), separator, limit, isTrim, ignoreEmpty);
+	}
+
+	/**
+	 * 切分字符串，如果分隔符不存在则返回原字符串
+	 *
+	 * @param str       被切分的字符串
+	 * @param separator 分隔符
+	 * @return 字符串
+	 * @since 5.7.1
+	 */
+	public static List<String> split(CharSequence str, CharSequence separator) {
+		return split(str, separator, false, false);
+	}
+
+	/**
+	 * 切分字符串
+	 *
+	 * @param str         被切分的字符串
+	 * @param separator   分隔符字符
+	 * @param isTrim      是否去除切分字符串后每个元素两边的空格
+	 * @param ignoreEmpty 是否忽略空串
+	 * @return 切分后的集合
+	 * @since 5.6.7
+	 */
+	public static List<String> split(CharSequence str, CharSequence separator, boolean isTrim, boolean ignoreEmpty) {
+		return split(str, separator, 0, isTrim, ignoreEmpty);
 	}
 
 	/**
@@ -1824,23 +1861,7 @@ public class CharSequenceUtil {
 			return new ArrayList<>(0);
 		}
 		final String separatorStr = (null == separator) ? null : separator.toString();
-		return StrSpliter.split(str.toString(), separatorStr, limit, isTrim, ignoreEmpty);
-	}
-
-	/**
-	 * 切分字符串，如果分隔符不存在则返回原字符串
-	 *
-	 * @param str       被切分的字符串
-	 * @param separator 分隔符
-	 * @return 字符串
-	 */
-	public static String[] split(CharSequence str, CharSequence separator) {
-		if (str == null) {
-			return new String[]{};
-		}
-
-		final String separatorStr = (null == separator) ? null : separator.toString();
-		return StrSpliter.splitToArray(str.toString(), separatorStr, 0, false, false);
+		return StrSplitter.split(str.toString(), separatorStr, limit, isTrim, ignoreEmpty);
 	}
 
 	/**
@@ -1849,13 +1870,13 @@ public class CharSequenceUtil {
 	 * @param str 字符串
 	 * @param len 每一个小节的长度
 	 * @return 截取后的字符串数组
-	 * @see StrSpliter#splitByLength(String, int)
+	 * @see StrSplitter#splitByLength(String, int)
 	 */
 	public static String[] split(CharSequence str, int len) {
 		if (null == str) {
 			return new String[]{};
 		}
-		return StrSpliter.splitByLength(str.toString(), len);
+		return StrSplitter.splitByLength(str.toString(), len);
 	}
 
 	/**
@@ -2310,7 +2331,7 @@ public class CharSequenceUtil {
 		}
 
 		final List<String> result = new LinkedList<>();
-		final String[] split = split(str, prefix);
+		final String[] split = splitToArray(str, prefix);
 		if (prefix.equals(suffix)) {
 			// 前后缀字符相同，单独处理
 			for (int i = 1, length = split.length - 1; i < length; i += 2) {
@@ -4231,6 +4252,20 @@ public class CharSequenceUtil {
 	 */
 	public static String join(CharSequence conjunction, Object... objs) {
 		return ArrayUtil.join(objs, conjunction);
+	}
+
+	/**
+	 * 以 conjunction 为分隔符将多个对象转换为字符串
+	 *
+	 * @param <T> 元素类型
+	 * @param conjunction 分隔符
+	 * @param iterable    集合
+	 * @return 连接后的字符串
+	 * @see CollUtil#join(Iterable, CharSequence)
+	 * @since 5.6.6
+	 */
+	public static <T> String join(CharSequence conjunction, Iterable<T> iterable) {
+		return CollUtil.join(iterable, conjunction);
 	}
 
 	/**

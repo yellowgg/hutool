@@ -1024,7 +1024,11 @@ public class XmlUtil {
 	public static <T> T xmlToBean(Node node, Class<T> bean) {
 		final Map<String, Object> map = xmlToMap(node);
 		if (null != map && map.size() == 1) {
-			return BeanUtil.toBean(map.get(bean.getSimpleName()), bean);
+			final String simpleName = bean.getSimpleName();
+			if(map.containsKey(simpleName)){
+				// 只有key和bean的名称匹配时才做单一对象转换
+				return BeanUtil.toBean(map.get(simpleName), bean);
+			}
 		}
 		return BeanUtil.toBean(map, bean);
 	}
@@ -1508,7 +1512,7 @@ public class XmlUtil {
 		 */
 		@Override
 		public String getNamespaceURI(String prefix) {
-			if (prefix == null || prefix.equals(XMLConstants.DEFAULT_NS_PREFIX)) {
+			if (prefix == null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
 				return prefixUri.get(DEFAULT_NS);
 			} else {
 				return prefixUri.get(prefix);

@@ -42,9 +42,6 @@ import java.util.Map;
  */
 public class HttpRequest extends HttpBase<HttpRequest> {
 
-	private static final String CONTENT_TYPE_MULTIPART_PREFIX = ContentType.MULTIPART.getValue() + "; boundary=";
-	private static final String CONTENT_TYPE_FILE_TEMPLATE = "Content-Type: {}\r\n\r\n";
-
 	/**
 	 * 设置全局默认的连接和读取超时时长
 	 *
@@ -346,13 +343,6 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	 * @return HttpRequest
 	 */
 	public HttpRequest method(Method method) {
-//		if (Method.PATCH == method) {
-//			this.method = Method.POST;
-//			this.header("X-HTTP-Method-Override", "PATCH");
-//		} else {
-//			this.method = method;
-//		}
-
 		this.method = method;
 		return this;
 	}
@@ -387,7 +377,7 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	public boolean isKeepAlive() {
 		String connection = header(Header.CONNECTION);
 		if (connection == null) {
-			return !httpVersion.equalsIgnoreCase(HTTP_1_0);
+			return false == HTTP_1_0.equalsIgnoreCase(httpVersion);
 		}
 
 		return false == "close".equalsIgnoreCase(connection);
@@ -547,6 +537,20 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	public HttpRequest form(Map<String, Object> formMap) {
 		if (MapUtil.isNotEmpty(formMap)) {
 			formMap.forEach(this::form);
+		}
+		return this;
+	}
+
+	/**
+	 * 设置map&lt;String, String&gt;类型表单数据
+	 *
+	 * @param formMapStr 表单内容
+	 * @return this
+	 * @since 5.6.7
+	 */
+	public HttpRequest formStr(Map<String, String> formMapStr) {
+		if (MapUtil.isNotEmpty(formMapStr)) {
+			formMapStr.forEach(this::form);
 		}
 		return this;
 	}
@@ -787,19 +791,6 @@ public class HttpRequest extends HttpBase<HttpRequest> {
 	 */
 	public HttpRequest disableCache() {
 		this.isDisableCache = true;
-		return this;
-	}
-
-	/**
-	 * 是否对URL中的参数进行编码
-	 *
-	 * @param isEncodeUrlParams 是否对URL中的参数进行编码
-	 * @return this
-	 * @since 4.4.1
-	 * @deprecated 编码自动完成，无需设置
-	 */
-	@Deprecated
-	public HttpRequest setEncodeUrlParams(boolean isEncodeUrlParams) {
 		return this;
 	}
 
